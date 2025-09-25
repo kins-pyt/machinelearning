@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset='UTF-8'>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quiz Challenge</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@300;400;500;600&display=swap');
+        
+        :root {
+            --primary: #0e36e6;
+            --secondary: #b0160e;
+            --accent: #5a0707cf;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #4cc9f0;
+            --danger: #e63946;
+            --warning: #ffbe0b;
+            --info: #4895ef;
+            --bg-primary: #0e36e6;
+            --bg-secondary: #b0160e;
+            --text-primary: #f8f9fa;
+            --text-secondary: #212529;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.2);
+        }
+        
+        .theme-light {
+            --bg-primary: #e3f2fd;
+            --bg-secondary: #bbdefb;
+            --text-primary: #212529;
+            --text-secondary: #f8f9fa;
+            --card-bg: rgba(255, 255, 255, 0.9);
+            --card-border: rgba(0, 0, 0, 0.1);
+        }
+        
+        .theme-blue {
+            --bg-primary: #0e36e6;
+            --bg-secondary: #b0160e;
+        }
+        
+        .theme-green {
+            --bg-primary: #1b5e20;
+            --bg-secondary: #4caf50;
+        }
+        
+        .theme-purple {
+            --bg-primary: #4a148c;
+            --bg-secondary: #8e24aa;
+        }
+        
+        .theme-orange {
+            --bg-primary: #e65100;
+            --bg-secondary: #ff9800;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        
+        .app-container {
+            display: flex;
+            max-width: 1200px;
+            width: 100%;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--card-border);
+            transition: all 0.3s ease;
+        }
+        
+        .settings-panel {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+            z-index: 1000;
+        }
+        
+        .theme-toggle, .color-picker {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 50px;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+        
+        .theme-toggle:hover, .color-picker:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .color-options {
+            position: absolute;
+            top: 60px;
+            right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 15px;
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .color-option {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+        
+        .color-option.active {
+            border-color: var(--text-primary);
+        }
+        
+        .color-blue {
+            background: linear-gradient(135deg, #0e36e6 0%, #b0160e 100%);
+        }
+        
+        .color-green {
+            background: linear-gradient(135deg, #1b5e20 0%, #4caf50 100%);
+        }
+        
+        .color-purple {
+            background: linear-gradient(135deg, #4a148c 0%, #8e24aa 100%);
+        }
+        
+        .color-orange {
+            background: linear-gradient(135deg, #e65100 0%, #ff9800 100%);
+        }
+        
+        .quiz-section {
+            flex: 3;
+            padding: 30px;
+        }
+        
+        .leaderboard-section {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 20px;
+            border-left: 1px solid var(--card-border);
+        }
+        
+        .container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .start {
+            text-align: center;
+        }
+        
+        .main {
+            display: none;
+        }
+        
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        h2 {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+        
+        .logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: var(--warning);
+        }
+        
+        .input-group {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 1rem;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            outline: none;
+            transition: all 0.3s ease;
+            color: #212529;
+        }
+        
+        .input-group input:focus {
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+        
+        .btn {
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            background: var(--primary);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin: 10px;
+        }
+        
+        .btn:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-start {
+            background: var(--accent);
+        }
+        
+        .btn-start:hover {
+            background: #c1121f;
+        }
+        
+        .question {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin: 20px 0;
+            color: var(--text-primary);
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .ans-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .answer {
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--dark);
+            font-size: 1.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .answer:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            background: var(--info);
+            color: white;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            max-width: 500px;
+            margin: 20px 0;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 15px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .progress-container {
+            width: 100%;
+            max-width: 500px;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--success);
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+        
+        .timer {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 15px 0;
+            color: var(--text-primary);
+        }
+        
+        .leaderboard {
+            width: 100%;
+        }
+        
+        .leaderboard h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .leaderboard-list {
+            list-style: none;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        
+        .leaderboard-list::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .leaderboard-list::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        
+        .leaderboard-list::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 10px;
+        }
+        
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+        
+        .leaderboard-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateX(5px);
+        }
+        
+        .leaderboard-item:first-child {
+            background: rgba(255, 215, 0, 0.2);
+        }
+        
+        .leaderboard-item:nth-child(2) {
+            background: rgba(192, 192, 192, 0.2);
+        }
+        
+        .leaderboard-item:nth-child(3) {
+            background: rgba(205, 127, 50, 0.2);
+        }
+        
+        .leaderboard-rank {
+            font-weight: 700;
+            width: 30px;
+        }
+        
+        .leaderboard-name {
+            flex: 1;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        .leaderboard-score {
+            font-weight: 700;
+            color: var(--warning);
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: var(--success);
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.5s ease;
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        @media (max-width: 900px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .leaderboard-section {
+                border-left: none;
+                border-top: 1px solid var(--card-border);
+            }
+            
+            .settings-panel {
+                top: 10px;
+                right: 10px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .question {
+                font-size: 2.5rem;
+            }
+            
+            .answer {
+                width: 80px;
+                height: 80px;
+                font-size: 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+            }
+            
+            .theme-toggle, .color-picker {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body class="theme-blue">
+    <div class="settings-panel">
+        <div class="theme-toggle" id="theme-toggle">
+            <i class="fas fa-moon"></i>
+        </div>
+        <div class="color-picker" id="color-picker">
+            <i class="fas fa-palette"></i>
+        </div>
+        <div class="color-options" id="color-options">
+            <div class="color-option color-blue active" data-theme="blue"></div>
+            <div class="color-option color-green" data-theme="green"></div>
+            <div class="color-option color-purple" data-theme="purple"></div>
+            <div class="color-option color-orange" data-theme="orange"></div>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <section class="quiz-section">
+            <div class='container start'>
+                <div class="logo">
+                    <i class="fas fa-calculator"></i>
+                </div>
+                <h1>Math Quiz Challenge</h1>
+                <h3>Masukkan nama Anda untuk memulai kuis matematika seru!</h3>
+                
+                <div class="input-group">
+                    <input type="text" id="player-name" placeholder="Nama Anda" maxlength="15">
+                </div>
+                
+                <div class="start-btn btn btn-start">Mulai Kuis</div>
+                
+                <div class="container_h3"></div>
+            </div>
+            
+            <div class="container main">
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-label">Pemain</div>
+                        <div class="stat-value" id="player-display">Anonymous</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Skor</div>
+                        <div class="stat-value" id="score">0</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-label">Benar</div>
+                        <div class="stat-value" id="correct">0</div>
+                    </div>
+                </div>
+                
+                <div class="progress-container">
+                    <div class="progress-bar" id="progress"></div>
+                </div>
+                
+                <div class="timer" id="timer">10</div>
+                <div class="question">23 - 7</div>
+                
+                <div class="ans-row">
+                    <div class="answer">3</div>
+                    <div class="answer">21</div>
+                    <div class="answer">30</div>
+                    <div class="answer">45</div>
+                    <div class="answer">16</div>
+                </div>
+            </div>
+        </section>
+        
+        <section class="leaderboard-section">
+            <div class="leaderboard">
+                <h2><i class="fas fa-trophy"></i> Leaderboard</h2>
+                <div class="leaderboard-controls">
+                    <button class="btn" id="clear-leaderboard">Hapus Leaderboard</button>
+                </div>
+                <ul class="leaderboard-list" id="leaderboard">
+                    <!-- Leaderboard items will be generated here -->
+                </ul>
+            </div>
+        </section>
+    </div>
+
+    <div class="notification" id="notification">
+        Jawaban Anda benar! +10 poin
+    </div>
+
+    <script src='https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js'></script>
+    <script>
+        // Elements
+        const containerMain = document.querySelector('.main');
+        const containerStart = document.querySelector('.start');
+        const containerStartH3 = containerStart.querySelector('h3');
+        const questionField = document.querySelector('.question');
+        const answerButtons = document.querySelectorAll('.answer');
+        const startButton = document.querySelector('.start-btn');
+        const playerNameInput = document.getElementById('player-name');
+        const playerDisplay = document.getElementById('player-display');
+        const scoreDisplay = document.getElementById('score');
+        const correctDisplay = document.getElementById('correct');
+        const timerDisplay = document.getElementById('timer');
+        const progressBar = document.getElementById('progress');
+        const leaderboardList = document.getElementById('leaderboard');
+        const notification = document.getElementById('notification');
+        const themeToggle = document.getElementById('theme-toggle');
+        const colorPicker = document.getElementById('color-picker');
+        const colorOptions = document.getElementById('color-options');
+        const colorOptionElements = document.querySelectorAll('.color-option');
+        const clearLeaderboardBtn = document.getElementById('clear-leaderboard');
+        const body = document.body;
+
+        // Game variables
+        let signs = ['+', '-', '*'];
+        let currentQuestion;
+        let correctAnswersGiven = 0;
+        let totalAnswersGiven = 0;
+        let score = 0;
+        let timeLeft = 10;
+        let timer;
+        let playerName = "Anonymous";
+        let leaderboard = [];
+        let isDarkMode = false;
+
+        // Theme Management
+        function initTheme() {
+            // Load saved theme preferences
+            const savedTheme = localStorage.getItem('mathQuizTheme');
+            const savedColor = localStorage.getItem('mathQuizColor');
+            
+            if (savedTheme === 'light') {
+                enableLightMode();
+            }
+            
+            if (savedColor) {
+                setColorTheme(savedColor);
+            }
+        }
+        
+        function enableLightMode() {
+            body.classList.add('theme-light');
+            isDarkMode = false;
+            themeToggle.innerHTML = '<i class="fas fa-sun"></i>';
+            localStorage.setItem('mathQuizTheme', 'light');
+        }
+        
+        function enableDarkMode() {
+            body.classList.remove('theme-light');
+            isDarkMode = true;
+            themeToggle.innerHTML = '<i class="fas fa-moon"></i>';
+            localStorage.setItem('mathQuizTheme', 'dark');
+        }
+        
+        function setColorTheme(color) {
+            // Remove all color classes
+            body.classList.remove('theme-blue', 'theme-green', 'theme-purple', 'theme-orange');
+            
+            // Add the selected color class
+            body.classList.add(`theme-${color}`);
+            
+            // Update active state in color options
+            colorOptionElements.forEach(option => {
+                option.classList.remove('active');
+                if (option.dataset.theme === color) {
+                    option.classList.add('active');
+                }
+            });
+            
+            localStorage.setItem('mathQuizColor', color);
+        }
+
+        // Leaderboard Management with JSON
+        function loadLeaderboard() {
+            const savedLeaderboard = localStorage.getItem('mathQuizLeaderboard');
+            if (savedLeaderboard) {
+                try {
+                    leaderboard = JSON.parse(savedLeaderboard);
+                    console.log("Leaderboard loaded:", leaderboard);
+                    updateLeaderboardDisplay();
+                } catch (e) {
+                    console.error("Error parsing leaderboard:", e);
+                    leaderboard = [];
+                }
+            } else {
+                leaderboard = [];
+                console.log("No leaderboard found, initializing empty leaderboard");
+            }
+        }
+        
+        function saveLeaderboard() {
+            try {
+                localStorage.setItem('mathQuizLeaderboard', JSON.stringify(leaderboard));
+                console.log("Leaderboard saved:", leaderboard);
+            } catch (e) {
+                console.error("Error saving leaderboard:", e);
+            }
+        }
+        
+        function updateLeaderboardDisplay() {
+            leaderboardList.innerHTML = '';
+            
+            if (leaderboard.length === 0) {
+                leaderboardList.innerHTML = '<li class="leaderboard-item">Belum ada skor</li>';
+                return;
+            }
+            
+            // Sort leaderboard by score (descending)
+            const sortedLeaderboard = [...leaderboard].sort((a, b) => b.score - a.score);
+            
+            // Display top 10 players
+            const topPlayers = sortedLeaderboard.slice(0, 10);
+            
+            topPlayers.forEach((player, index) => {
+                const li = document.createElement('li');
+                li.className = 'leaderboard-item';
+                
+                // Add medal emoji for top 3
+                let rankEmoji = '';
+                if (index === 0) rankEmoji = '🥇 ';
+                else if (index === 1) rankEmoji = '🥈 ';
+                else if (index === 2) rankEmoji = '🥉 ';
+                
+                li.innerHTML = `
+                    <span class="leaderboard-rank">${rankEmoji}${index + 1}</span>
+                    <span class="leaderboard-name">${player.name}</span>
+                    <span class="leaderboard-score">${player.score}</span>
+                `;
+                
+                leaderboardList.appendChild(li);
+            });
+        }
+        
+        function addToLeaderboard(name, score) {
+            // Create a new player entry
+            const playerEntry = {
+                name: name,
+                score: score,
+                date: new Date().toISOString().split('T')[0] // YYYY-MM-DD format
+            };
+            
+            // Add to leaderboard
+            leaderboard.push(playerEntry);
+            
+            // Sort and keep only top 20 entries to prevent localStorage overflow
+            leaderboard.sort((a, b) => b.score - a.score);
+            if (leaderboard.length > 20) {
+                leaderboard = leaderboard.slice(0, 20);
+            }
+            
+            // Save and update display
+            saveLeaderboard();
+            updateLeaderboardDisplay();
+            
+            console.log("Player added to leaderboard:", playerEntry);
+        }
+        
+        function clearLeaderboard() {
+            if (confirm("Apakah Anda yakin ingin menghapus semua data leaderboard?")) {
+                leaderboard = [];
+                saveLeaderboard();
+                updateLeaderboardDisplay();
+                showNotification("Leaderboard berhasil dihapus", true);
+            }
+        }
+        
+        // Show notification
+        function showNotification(message, isSuccess = true) {
+            notification.textContent = message;
+            notification.style.background = isSuccess ? 'var(--success)' : 'var(--danger)';
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Initialize
+        function init() {
+            initTheme();
+            loadLeaderboard();
+            
+            // Check if we have previous score data
+            const previousScore = localStorage.getItem('mathQuizPreviousScore');
+            if (previousScore) {
+                try {
+                    const data = JSON.parse(previousScore);
+                    containerStartH3.innerHTML = `<h3>Terakhir kali, ${data.name} menjawab ${data.correct} benar dari ${data.total} soal. Akurasi: ${Math.round(data.correct * 100 / data.total)}%</h3>`;
+                } catch (e) {
+                    console.error("Error parsing previous score:", e);
+                }
+            }
+            
+            // Add event listener for clear leaderboard button
+            clearLeaderboardBtn.addEventListener('click', clearLeaderboard);
+        }
+        
+        // Shuffle array
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                
+                [array[currentIndex], array[randomIndex]] = [
+                    array[randomIndex], array[currentIndex]];
+            }
+            
+            return array;
+        }
+        
+        // Generate random integer
+        function randint(min, max) {
+            return Math.round(Math.random() * (max - min) + min);
+        }
+        
+        // Get random sign
+        function getRandomSign() {
+            return signs[randint(0, 2)];
+        }
+        
+        // Question class
+        class Question {
+            constructor() {
+                let a = randint(1, 30);
+                let b = randint(1, 30);
+                let sign = getRandomSign();
+                this.question = `${a} ${sign} ${b}`;
+                
+                if (sign == '+') { this.correct = a + b; }
+                else if (sign == '-') { this.correct = a - b; }
+                else if (sign == '*') { this.correct = a * b; }
+                
+                this.answers = [
+                    randint(this.correct - 20, this.correct - 1),
+                    randint(this.correct - 20, this.correct - 1),
+                    this.correct,
+                    randint(this.correct + 1, this.correct + 20),
+                    randint(this.correct + 1, this.correct + 20),
+                ];
+                
+                shuffle(this.answers);
+            }
+            
+            display() {
+                questionField.innerHTML = this.question;
+                
+                for (let i = 0; i < this.answers.length; i += 1) {
+                    answerButtons[i].innerHTML = this.answers[i];
+                }
+            }
+        }
+        
+        // Start timer
+        function startTimer() {
+            clearInterval(timer);
+            timeLeft = 10;
+            timerDisplay.textContent = timeLeft;
+            timerDisplay.style.color = 'var(--text-primary)';
+            
+            timer = setInterval(() => {
+                timeLeft--;
+                timerDisplay.textContent = timeLeft;
+                
+                // Change color when time is running out
+                if (timeLeft <= 3) {
+                    timerDisplay.style.color = 'var(--danger)';
+                    anime({
+                        targets: timerDisplay,
+                        scale: [1, 1.2, 1],
+                        duration: 1000,
+                        easing: 'easeInOutQuad'
+                    });
+                }
+                
+                // Update progress bar
+                progressBar.style.width = `${(10 - timeLeft) * 10}%`;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleTimeUp();
+                }
+            }, 1000);
+        }
+        
+        // Handle when time is up
+        function handleTimeUp() {
+            showNotification('Waktu habis! Soal berikutnya...', false);
+            
+            // Move to next question
+            totalAnswersGiven++;
+            updateStats();
+            currentQuestion = new Question();
+            currentQuestion.display();
+            startTimer();
+        }
+        
+        // Update game stats
+        function updateStats() {
+            scoreDisplay.textContent = score;
+            correctDisplay.textContent = correctAnswersGiven;
+        }
+        
+        // Start game
+        startButton.addEventListener('click', function() {
+            playerName = playerNameInput.value.trim() || "Anonymous";
+            playerDisplay.textContent = playerName;
+            
+            containerMain.style.display = 'flex';
+            containerStart.style.display = 'none';
+            
+            // Reset game state
+            correctAnswersGiven = 0;
+            totalAnswersGiven = 0;
+            score = 0;
+            updateStats();
+            
+            // Create first question
+            currentQuestion = new Question();
+            currentQuestion.display();
+            
+            // Start the timer
+            startTimer();
+        });
+        
+        // Answer click event
+        for (let i = 0; i < answerButtons.length; i += 1) {
+            answerButtons[i].addEventListener('click', function() {
+                // Clear the timer
+                clearInterval(timer);
+                
+                if (parseInt(answerButtons[i].innerHTML) === currentQuestion.correct) {
+                    // Correct answer
+                    correctAnswersGiven++;
+                    score += 10;
+                    showNotification('Jawaban benar! +10 poin', true);
+                    
+                    answerButtons[i].style.background = 'var(--success)';
+                    answerButtons[i].style.color = 'white';
+                    
+                    anime({
+                        targets: answerButtons[i],
+                        background: '#FFFFFF',
+                        color: '#212529',
+                        duration: 500,
+                        delay: 500,
+                        easing: 'linear'
+                    });
+                } else {
+                    // Wrong answer
+                    showNotification(`Jawaban salah! Jawaban benar: ${currentQuestion.correct}`, false);
+                    
+                    answerButtons[i].style.background = 'var(--danger)';
+                    answerButtons[i].style.color = 'white';
+                    
+                    anime({
+                        targets: answerButtons[i],
+                        background: '#FFFFFF',
+                        color: '#212529',
+                        duration: 500,
+                        delay: 500,
+                        easing: 'linear'
+                    });
+                }
+                
+                totalAnswersGiven++;
+                updateStats();
+                
+                // Check if game should end (after 10 questions)
+                if (totalAnswersGiven >= 10) {
+                    setTimeout(function() {
+                        // Save score to leaderboard
+                        addToLeaderboard(playerName, score);
+                        
+                        // Save previous score data
+                        localStorage.setItem('mathQuizPreviousScore', JSON.stringify({
+                            name: playerName,
+                            correct: correctAnswersGiven,
+                            total: totalAnswersGiven,
+                            score: score,
+                            date: new Date().toISOString()
+                        }));
+                        
+                        // Show start screen
+                        containerMain.style.display = 'none';
+                        containerStart.style.display = 'flex';
+                        containerStartH3.innerHTML = `<h3>${playerName}, Anda menjawab ${correctAnswersGiven} benar dari ${totalAnswersGiven} soal. Skor: ${score}. Akurasi: ${Math.round(correctAnswersGiven * 100 / totalAnswersGiven)}%</h3>`;
+                    }, 1000);
+                } else {
+                    // Next question
+                    setTimeout(function() {
+                        currentQuestion = new Question();
+                        currentQuestion.display();
+                        startTimer();
+                    }, 1000);
+                }
+            });
+        }
+        
+        // Theme toggle event
+        themeToggle.addEventListener('click', function() {
+            if (isDarkMode) {
+                enableLightMode();
+            } else {
+                enableDarkMode();
+            }
+        });
+        
+        // Color picker toggle
+        colorPicker.addEventListener('click', function() {
+            if (colorOptions.style.display === 'flex') {
+                colorOptions.style.display = 'none';
+            } else {
+                colorOptions.style.display = 'flex';
+            }
+        });
+        
+        // Color option selection
+        colorOptionElements.forEach(option => {
+            option.addEventListener('click', function() {
+                const color = this.dataset.theme;
+                setColorTheme(color);
+                colorOptions.style.display = 'none';
+            });
+        });
+        
+        // Close color options when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!colorPicker.contains(event.target) && !colorOptions.contains(event.target)) {
+                colorOptions.style.display = 'none';
+            }
+        });
+        
+        // Initialize the game
+        init();
+    </script>
+</body>
+</html>

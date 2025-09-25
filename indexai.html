@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RoboVision - Object Detection with TensorFlow.js</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #34495e;
+            --accent-color: #ecf0f1;
+            --text-color: #ecf0f1;
+            --success-color: #27ae60;
+            --warning-color: #e74c3c;
+            --highlight-color: #3498db;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background-color: var(--secondary-color);
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--accent-color);
+        }
+
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+            background-color: #000;
+        }
+
+        #webcam {
+            width: 100%;
+            display: block;
+            transform: scaleX(-1); /* Mirror the video for more natural feel */
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        button {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button:hover {
+            background-color: var(--highlight-color);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        button:disabled:hover {
+            background-color: var(--secondary-color);
+            transform: none;
+        }
+
+        #webcamButton {
+            background-color: var(--success-color);
+        }
+
+        #stopButton {
+            background-color: var(--warning-color);
+        }
+
+        .stats-panel {
+            background-color: var(--secondary-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .stat-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 0.5rem 0;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .detection-list {
+            margin-top: 1.5rem;
+        }
+
+        .detection-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.8rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            margin-bottom: 0.5rem;
+            border-radius: 6px;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .highlighter {
+            position: absolute;
+            border: 2px solid var(--highlight-color);
+            background-color: rgba(52, 152, 219, 0.2);
+            pointer-events: none;
+            z-index: 2;
+            border-radius: 4px;
+        }
+
+        .detection-label {
+            position: absolute;
+            background-color: rgba(52, 152, 219, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            text-align: center;
+        }
+
+        .loading i {
+            display: block;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            animation: spin 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            background-color: var(--secondary-color);
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: auto;
+        }
+
+        .model-info {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8rem;
+            }
+            
+            .container {
+                padding: 1rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            button {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.5rem;
+            }
+            
+            .tagline {
+                font-size: 0.9rem;
+            }
+            
+            .stat-value {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1><i class="fas fa-robot"></i> RoboVision</h1>
+        <p class="tagline">Advanced object detection powered by TensorFlow.js</p>
+    </header>
+
+    <div class="container">
+        <div class="main-content">
+            <div class="video-container" id="liveView">
+                <div class="loading" id="loading">
+                    <i class="fas fa-cog"></i>
+                    <p>Loading AI model...</p>
+                </div>
+                <video id="webcam" autoplay muted playsinline></video>
+            </div>
+
+            <div class="controls">
+                <button id="webcamButton">
+                    <i class="fas fa-camera"></i> Enable Robot Vision
+                </button>
+                <button id="stopButton" disabled>
+                    <i class="fas fa-stop"></i> Stop Detection
+                </button>
+                <button id="toggleDetection">
+                    <i class="fas fa-eye"></i> Pause Detection
+                </button>
+                <button id="screenshotButton" disabled>
+                    <i class="fas fa-camera"></i> Take Snapshot
+                </button>
+            </div>
+
+            <div class="stats-panel">
+                <div class="stats-header">
+                    <h2><i class="fas fa-chart-bar"></i> Detection Statistics</h2>
+                    <button id="resetStats">
+                        <i class="fas fa-sync-alt"></i> Reset
+                    </button>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Objects Detected</div>
+                        <div class="stat-value" id="objectsCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Detection Confidence</div>
+                        <div class="stat-value" id="avgConfidence">0%</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Detection FPS</div>
+                        <div class="stat-value" id="detectionFps">0</div>
+                    </div>
+                </div>
+
+                <div class="detection-list">
+                    <h3>Recent Detections</h3>
+                    <div id="detectionsContainer">
+                        <p id="noDetections">No objects detected yet. Enable camera to start detection.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>Created by: [Your Name] | Powered by TensorFlow.js</p>
+        <p class="model-info">Using COCO-SSD model for object detection</p>
+    </footer>
+
+    <!-- TensorFlow.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd"></script>
+    
+    <script>
+        // DOM Elements
+        const webcamButton = document.getElementById('webcamButton');
+        const stopButton = document.getElementById('stopButton');
+        const toggleDetectionButton = document.getElementById('toggleDetection');
+        const screenshotButton = document.getElementById('screenshotButton');
+        const resetStatsButton = document.getElementById('resetStats');
+        const video = document.getElementById('webcam');
+        const liveView = document.getElementById('liveView');
+        const loadingIndicator = document.getElementById('loading');
+        const objectsCountElement = document.getElementById('objectsCount');
+        const avgConfidenceElement = document.getElementById('avgConfidence');
+        const detectionFpsElement = document.getElementById('detectionFps');
+        const detectionsContainer = document.getElementById('detectionsContainer');
+        const noDetections = document.getElementById('noDetections');
+
+        // Application state
+        let model = null;
+        let isDetectionActive = true;
+        let detectionInterval;
+        let children = [];
+        let detectedObjects = {};
+        let detectionCount = 0;
+        let frameCount = 0;
+        let startTime = Date.now();
+        let lastDetectionTime = 0;
+
+        // Load the pre-trained COCO-SSD model
+        async function loadModel() {
+            try {
+                loadingIndicator.style.display = 'block';
+                console.log("Loading model...");
+                model = await cocoSsd.load();
+                console.log("Model loaded!");
+                webcamButton.disabled = false;
+                loadingIndicator.style.display = 'none';
+            } catch (error) {
+                console.error("Error loading model:", error);
+                loadingIndicator.innerHTML = '<i class="fas fa-exclamation-triangle"></i><p>Error loading model</p>';
+            }
+        }
+
+        // Enable Webcam and start object detection
+        async function enableWebcam() {
+            if (!model) {
+                console.log("Model not loaded yet");
+                return;
+            }
+
+            // Hide the button and show stop button
+            webcamButton.disabled = true;
+            stopButton.disabled = false;
+            screenshotButton.disabled = false;
+
+            // Check if browser supports webcam access
+            try {
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'environment' // Prefer rear-facing camera on mobile
+                    }
+                };
+
+                const stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+                video.style.display = 'block';
+                
+                // Wait for video to load properly
+                video.addEventListener('loadeddata', () => {
+                    startDetection();
+                });
+            } catch (error) {
+                console.error("Webcam error:", error);
+                alert("Unable to access webcam. Please check permissions and try again.");
+                webcamButton.disabled = false;
+                stopButton.disabled = true;
+            }
+        }
+
+        // Start the detection loop
+        function startDetection() {
+            // Reset stats
+            startTime = Date.now();
+            frameCount = 0;
+            detectedObjects = {};
+            detectionCount = 0;
+            updateStats();
+            
+            // Start detection loop with requestAnimationFrame for better performance
+            function detect() {
+                if (isDetectionActive) {
+                    predictWebcam();
+                }
+                requestAnimationFrame(detect);
+            }
+            
+            detect();
+        }
+
+        // Prediction function
+        async function predictWebcam() {
+            if (!model || !isDetectionActive) return;
+            
+            const currentTime = Date.now();
+            // Throttle detection to improve performance on mobile
+            if (currentTime - lastDetectionTime < 200) return;
+            
+            lastDetectionTime = currentTime;
+            
+            // Make predictions
+            const predictions = await model.detect(video);
+            
+            // Update frame count and FPS
+            frameCount++;
+            const elapsed = (Date.now() - startTime) / 1000;
+            const fps = Math.round(frameCount / elapsed);
+            detectionFpsElement.textContent = fps;
+            
+            // Clear previous highlights
+            children.forEach(child => liveView.removeChild(child));
+            children = [];
+            
+            // Update detection count
+            detectionCount += predictions.length;
+            objectsCountElement.textContent = predictions.length;
+            
+            // Process new predictions
+            if (predictions.length > 0) {
+                noDetections.style.display = 'none';
+                
+                let totalConfidence = 0;
+                const currentDetections = [];
+                
+                predictions.forEach((prediction) => {
+                    if (prediction.score > 0.66) {
+                        totalConfidence += prediction.score;
+                        
+                        // Track object counts
+                        if (!detectedObjects[prediction.class]) {
+                            detectedObjects[prediction.class] = 0;
+                        }
+                        detectedObjects[prediction.class]++;
+                        
+                        // Create detection element
+                        const p = document.createElement('p');
+                        p.innerText = `${prediction.class} - ${Math.round(prediction.score * 100)}%`;
+                        p.style = `
+                            position: absolute;
+                            left: ${prediction.bbox[0]}px;
+                            top: ${prediction.bbox[1]}px;
+                            margin: 0;
+                            font-size: 14px;
+                            background: rgba(52, 152, 219, 0.9);
+                            color: white;
+                            padding: 4px 8px;
+                            border-radius: 4px;
+                            z-index: 5;
+                            pointer-events: none;
+                        `;
+
+                        const highlighter = document.createElement('div');
+                        highlighter.setAttribute('class', 'highlighter');
+                        highlighter.style = `
+                            left: ${prediction.bbox[0]}px;
+                            top: ${prediction.bbox[1]}px;
+                            width: ${prediction.bbox[2]}px;
+                            height: ${prediction.bbox[3]}px;
+                        `;
+                        
+                        liveView.appendChild(highlighter);
+                        liveView.appendChild(p);
+                        
+                        children.push(highlighter);
+                        children.push(p);
+                        
+                        // Add to current detections list
+                        currentDetections.push({
+                            class: prediction.class,
+                            confidence: Math.round(prediction.score * 100)
+                        });
+                    }
+                });
+                
+                // Update average confidence
+                const avgConfidence = totalConfidence > 0 ? Math.round((totalConfidence / predictions.length) * 100) : 0;
+                avgConfidenceElement.textContent = `${avgConfidence}%`;
+                
+                // Update detection list
+                updateDetectionList(currentDetections);
+            } else {
+                noDetections.style.display = 'block';
+                avgConfidenceElement.textContent = "0%";
+            }
+        }
+
+        // Update detection list UI
+        function updateDetectionList(detections) {
+            // Clear previous list but keep the "no detections" message hidden
+            detectionsContainer.innerHTML = '';
+            noDetections.style.display = 'none';
+            
+            // Add new detections (show latest 5)
+            detections.slice(0, 5).forEach(detection => {
+                const detectionElement = document.createElement('div');
+                detectionElement.className = 'detection-item';
+                detectionElement.innerHTML = `
+                    <span>${detection.class}</span>
+                    <span>${detection.confidence}% confidence</span>
+                `;
+                detectionsContainer.appendChild(detectionElement);
+            });
+        }
+
+        // Stop webcam and detection
+        function stopWebcam() {
+            // Stop detection
+            isDetectionActive = false;
+            
+            // Stop video stream
+            if (video.srcObject) {
+                const tracks = video.srcObject.getTracks();
+                tracks.forEach(track => track.stop());
+                video.srcObject = null;
+            }
+            
+            // Clear highlights
+            children.forEach(child => liveView.removeChild(child));
+            children = [];
+            
+            // Hide video and show enable button
+            video.style.display = 'none';
+            webcamButton.disabled = false;
+            stopButton.disabled = true;
+            screenshotButton.disabled = true;
+            
+            // Reset detection state
+            noDetections.style.display = 'block';
+        }
+
+        // Toggle detection on/off
+        function toggleDetection() {
+            isDetectionActive = !isDetectionActive;
+            toggleDetectionButton.innerHTML = isDetectionActive ? 
+                '<i class="fas fa-eye-slash"></i> Pause Detection' : 
+                '<i class="fas fa-eye"></i> Resume Detection';
+        }
+
+        // Take a screenshot
+        function takeScreenshot() {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            
+            // Set canvas dimensions to match video
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Draw video frame to canvas
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            // Draw bounding boxes and labels
+            children.forEach(child => {
+                if (child.className === 'highlighter') {
+                    const style = child.style;
+                    context.strokeStyle = '#3498db';
+                    context.lineWidth = 2;
+                    context.strokeRect(
+                        parseFloat(style.left),
+                        parseFloat(style.top),
+                        parseFloat(style.width),
+                        parseFloat(style.height)
+                    );
+                }
+            });
+            
+            // Convert to data URL and create download link
+            const dataUrl = canvas.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'robovision-screenshot.png';
+            link.href = dataUrl;
+            link.click();
+        }
+
+        // Reset statistics
+        function resetStatistics() {
+            detectedObjects = {};
+            detectionCount = 0;
+            startTime = Date.now();
+            frameCount = 0;
+            updateStats();
+        }
+
+        // Update statistics display
+        function updateStats() {
+            objectsCountElement.textContent = '0';
+            avgConfidenceElement.textContent = '0%';
+            detectionFpsElement.textContent = '0';
+            detectionsContainer.innerHTML = '';
+            noDetections.style.display = 'block';
+        }
+
+        // Initialize the application
+        function init() {
+            // Event listeners
+            webcamButton.addEventListener('click', enableWebcam);
+            stopButton.addEventListener('click', stopWebcam);
+            toggleDetectionButton.addEventListener('click', toggleDetection);
+            screenshotButton.addEventListener('click', takeScreenshot);
+            resetStatsButton.addEventListener('click', resetStatistics);
+            
+            // Load model
+            loadModel();
+            
+            // Check for mobile device and adjust UI if needed
+            if (/Mobi|Android/i.test(navigator.userAgent)) {
+                console.log("Mobile device detected");
+                // Additional mobile-specific adjustments can be made here
+            }
+        }
+
+        // Start the app when the page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
